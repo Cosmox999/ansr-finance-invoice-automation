@@ -1,0 +1,13 @@
+ORION SOFTWARE SOLUTIONS
+Annual Maintenance Contract - Billing Statement
+
+Dear Northwind Accounts Team,
+
+This statement is issued under Purchase Order Number PO-1004.
+Invoice reference: ORION-AMC-2026-12
+Date of issue: June 5, 2026
+Total amount payable for the annual maintenance renewal is
+Rupees One Lakh Fifty-Eight Thousand only (Rs. 1,58,000.00).
+
+Regards,
+Finance Desk, Orion Software Solutions

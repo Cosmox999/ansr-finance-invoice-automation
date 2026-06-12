@@ -1,0 +1,11 @@
+DELTA LOGISTICS (INDIA)
+Freight & Transport Services
+
+Invoice Number: DLI-2026-3390
+Invoice Date: 06/09/2026
+Reference P.O.: PO-9999
+Bill To: Northwind Manufacturing Ltd
+
+Outbound freight - 4 consignments .......... Rs. 28,500.00
+Fuel surcharge ............................. Rs.  2,500.00
+                                  TOTAL .... Rs. 31,000.00

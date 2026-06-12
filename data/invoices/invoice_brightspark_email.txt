@@ -1,0 +1,15 @@
+From: accounts@brightspark-electricals.com
+To: payables@northwind.com
+Subject: Invoice for May electrical works
+
+Hi team,
+
+Please find our billing details for the electrical fit-out completed last week.
+This is against PO# PO-1002. Our invoice number is BSE/INV/8821 dated
+11 June 2026, and the total payable comes to Rs. 64,800 (all inclusive).
+
+Kindly process at the earliest and confirm once done.
+
+Thanks,
+Ravi Menon
+BrightSpark Electricals

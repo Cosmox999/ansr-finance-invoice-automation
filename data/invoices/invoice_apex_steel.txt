@@ -1,0 +1,20 @@
+APEX STEEL & ALLOYS PVT LTD
+GST: 27AAACA1234F1Z5 | Mumbai, Maharashtra
+------------------------------------------------------------
+                         TAX INVOICE
+------------------------------------------------------------
+Invoice No.   : APX-2026-0455
+Invoice Date  : 03-06-2026
+Purchase Order No. : PO-1001
+
+Bill To: Northwind Manufacturing Ltd
+
+  Description              Qty      Rate        Amount
+  TMT Steel Bars (12mm)    50 MT    1,750.00    87,500.00
+  ------------------------------------------------------
+                          Sub Total        Rs. 87,500.00
+                          GST @ 18%         Rs. 15,750.00
+                          ------------------------------
+                          GRAND TOTAL       Rs. 1,03,250.00
+
+Payment due within 30 days. Thank you for your business.

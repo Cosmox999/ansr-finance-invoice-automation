@@ -1,0 +1,144 @@
+# Invoice Processing & Validation — Prototype
+
+Automates the Finance team's manual invoice workflow: **read vendor invoices →
+validate against the PO master → update the Excel tracker → flag discrepancies for
+review.** An LLM (via Groq) handles the messy "every vendor formats invoices
+differently" part; plain Python handles the exact, auditable matching.
+
+> Built for the ANSR Global — AI Builder Intern assignment. Happy-path prototype:
+> simple, practical, and runnable with one command. See
+> [SOLUTION_DESIGN.md](SOLUTION_DESIGN.md) for the stakeholder-facing write-up.
+
+---
+
+## What it does (at a glance)
+
+```
+data/invoices/*.txt  ──►  extract.py (Groq LLM)  ──►  validate.py (PO master)
+                     ──►  update_tracker.py (Excel)  ──►  flag_discrepancies.py (draft emails)
+                     ──►  main.py prints a summary table + writes an audit log
+```
+
+## Setup
+
+**1. Python** — requires Python 3.10+ (tested on 3.12).
+
+**2. Install dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+**3. Get a free Groq API key**
+
+- Go to **https://console.groq.com** → sign in → *API Keys* → *Create API Key*.
+- Copy the key (starts with `gsk_...`).
+
+**4. Set the key as an environment variable** (the code reads
+`os.environ["GROQ_API_KEY"]` — it is never hardcoded):
+
+```powershell
+# Windows PowerShell
+$env:GROQ_API_KEY = "gsk_your_key_here"
+```
+
+```bash
+# macOS / Linux
+export GROQ_API_KEY="gsk_your_key_here"
+```
+
+> Alternatively, create a `.env` file with `GROQ_API_KEY=gsk_your_key_here` — it is
+> loaded automatically.
+
+## Run
+
+```bash
+# (first time only) generate the mock invoices + PO master
+python generate_mock_data.py
+
+# run the full pipeline
+python main.py
+```
+
+That's it — one command runs extract → validate → track → flag → summary.
+
+## Folder structure
+
+```
+Finance assignment/
+├── config.py                  # All paths, model name, tolerances in one place
+├── generate_mock_data.py      # Creates the sample invoices + PO master
+├── extract.py                 # LLM extraction (Groq) → structured fields + confidence
+├── validate.py                # PO lookup + amount tolerance check
+├── update_tracker.py          # Append results to the Excel tracker
+├── flag_discrepancies.py      # Draft (don't send) alert emails for mismatches
+├── main.py                    # Orchestrator: runs the whole pipeline
+├── requirements.txt
+├── SOLUTION_DESIGN.md         # 1-2 page solution design (for Finance stakeholders)
+├── README.md
+├── data/
+│   ├── invoices/              # 6 mock invoices, each a different vendor layout
+│   ├── po_master.xlsx         # Purchase Order master (source of truth)
+│   └── invoice_tracker.xlsx   # ← created/updated by the pipeline
+└── output/
+    ├── discrepancy_emails/    # ← draft alert emails (one per flagged invoice)
+    └── run_log.jsonl          # ← audit trail: one JSON line per invoice per run
+```
+
+## The mock data (and the 3 seeded discrepancies)
+
+Seven invoices are written in deliberately different styles (formal table, casual
+email body, abbreviation-heavy slip, letter format, different date formats) to
+prove the LLM copes with format variation. Three are seeded to fail validation:
+
+| Invoice | Vendor | Expected outcome |
+|---|---|---|
+| ORION-AMC-2026-12 | Orion Software Solutions | **Amount Mismatch** (invoice Rs. 1,58,000 vs PO Rs. 1,45,000) |
+| DLI-2026-3390 | Delta Logistics | **PO Not Found** (references PO-9999, not in master) |
+| TTH-2026-0521 | Titan Tools & Hardware | **Vendor Mismatch** (right amount + valid PO-1007, but that PO belongs to Vertex Industrial Supplies) |
+
+The other four match cleanly. The vendor mismatch is the interesting one: the
+amount *and* the PO are both valid, so a system that only checked amounts would
+pay it. The vendor cross-check catches a wrong-PO / duplicate / fraudulent invoice
+that amount-matching alone would miss.
+
+## Sample expected output
+
+```
+Step 1/4  Extracting invoice fields with Groq LLM ...
+  - Extracting invoice_apex_steel.txt ...
+  - Extracting invoice_brightspark_email.txt ...
+  - Extracting invoice_delta_logistics.txt ...
+  - Extracting invoice_orion_software.txt ...
+  - Extracting invoice_summit_office.txt ...
+  - Extracting invoice_titan_tools.txt ...
+  - Extracting invoice_zenith_pack.txt ...
+Step 2/4  Validating against PO master ...
+Step 3/4  Updating Excel tracker ...
+          -> .../data/invoice_tracker.xlsx
+Step 4/4  Drafting discrepancy alert emails ...
+          -> 3 draft(s) in .../output/discrepancy_emails
+
+==============================================================================
+INVOICE PROCESSING SUMMARY
+==============================================================================
+╭───────────────────┬─────────────────────────────┬────────────────┬─────────┬──────────────────────────────╮
+│ Invoice #         │ Vendor                      │ Amount         │ PO #    │ Status                       │
+├───────────────────┼─────────────────────────────┼────────────────┼─────────┼──────────────────────────────┤
+│ APX-2026-0455     │ APEX STEEL & ALLOYS PVT LTD │ Rs. 103,250.00 │ PO-1001 │ Matched                      │
+│ BSE/INV/8821      │ BrightSpark Electricals     │ Rs. 64,800.00  │ PO-1002 │ Matched                      │
+│ DLI-2026-3390     │ DELTA LOGISTICS (INDIA)     │ Rs. 31,000.00  │ PO-9999 │ Discrepancy: PO Not Found    │
+│ ORION-AMC-2026-12 │ Orion Software Solutions    │ Rs. 158,000.00 │ PO-1004 │ Discrepancy: Amount Mismatch │
+│ SOS-2026-1190     │ SUMMIT OFFICE SUPPLIES      │ Rs. 97,500.00  │ PO-1006 │ Matched                      │
+│ TTH-2026-0521     │ TITAN TOOLS & HARDWARE      │ Rs. 55,000.00  │ PO-1007 │ Discrepancy: Vendor Mismatch │
+│ ZP-7741           │ Zenith Packaging Co.        │ Rs. 42,000.00  │ PO-1003 │ Matched                      │
+╰───────────────────┴─────────────────────────────┴────────────────┴─────────┴──────────────────────────────╯
+
+Processed 7 invoices  |  4 matched  |  3 discrepancies  |  0 need review
+```
+
+A full captured run (tracker, draft emails, audit log, console output) is committed
+under [sample_output/](sample_output/) so you can see the results without running it.
+
+*(Exact numbers depend on the LLM's reading; the three seeded discrepancies will
+always be flagged.)*

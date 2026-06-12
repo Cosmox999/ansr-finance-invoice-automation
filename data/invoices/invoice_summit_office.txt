@@ -1,0 +1,11 @@
+SUMMIT OFFICE SUPPLIES  ::  Invoice
+=====================================
+Invoice #     SOS-2026-1190
+Issued        08-Jun-2026
+Against PO    PO-1006
+Customer      Northwind Manufacturing Ltd
+-------------------------------------
+Office chairs x20 ............ 90,000.00
+Desk organizers x40 .........  7,500.00
+-------------------------------------
+TOTAL (INR) ................. 97,500.00
