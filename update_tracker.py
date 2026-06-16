@@ -55,7 +55,8 @@ def update_tracker(records: list[dict]) -> str:
 
 
 if __name__ == "__main__":
-    from extract import extract_invoices
+    from extract import extract_invoices, load_local_sources
     from validate import validate_invoices
 
-    print(f"Tracker updated: {update_tracker(validate_invoices(extract_invoices()))}")
+    print(f"Tracker updated: "
+          f"{update_tracker(validate_invoices(extract_invoices(load_local_sources())))}")

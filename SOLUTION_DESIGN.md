@@ -18,8 +18,9 @@ invoice volume.
 A small automation that does the boring 90% so a person only handles the
 exceptions. For each incoming invoice it:
 
-1. **Reads** the invoice and pulls out Vendor, Invoice Number, Date, Amount and PO
-   Number — using an AI model that copes with any vendor's format.
+1. **Pulls** invoice PDFs straight from the Finance Gmail inbox, reads the text out
+   of each PDF, and uses an AI model to extract Vendor, Invoice Number, Date, Amount
+   and PO Number — coping with any vendor's format.
 2. **Checks** the PO Number, Amount **and Vendor** against our PO master file
    (three controls: does the PO exist, does the amount agree, and is the invoice
    actually from the vendor that PO was raised for).
@@ -34,7 +35,7 @@ exceptions.**
 
 ```mermaid
 flowchart LR
-    A["Vendor invoice<br/>(email PDF attachment)"] --> B["Text extraction<br/>(PDF or OCR in prod;<br/>text files in prototype)"]
+    A["Vendor emails invoice<br/>(PDF attachment) to Gmail"] --> B["Pull from Gmail inbox<br/>(IMAP) + read PDF text<br/>(pypdf)"]
     B --> C["AI field extraction<br/>Groq LLM, Llama 3.3<br/>Vendor, Inv No, Date, Amount, PO No"]
     C --> D{"Validate against<br/>PO master file"}
     D -- "PO found,<br/>amount matches" --> E["Status: Matched"]
@@ -62,9 +63,10 @@ demands at scale. Likewise, the text-file inbox is a small step away from a real
 
 ## 5. Assumptions
 
-- **Invoice text is already extracted from the PDF** for this prototype (text
-  files stand in for PDF attachments). Production adds a PDF-text / OCR step before
-  extraction — a known, well-supported piece.
+- **Invoices arrive as PDF attachments in a Gmail inbox.** The prototype connects to
+  Gmail over IMAP (using an App Password) and reads the text out of each PDF with
+  `pypdf`. This assumes **digitally-generated (text-based) PDFs**; scanned/image
+  invoices would need an OCR step (e.g. Tesseract) — a known, well-supported addition.
 - **Single currency** (INR). Multi-currency would add a normalisation step.
 - **Matching is tolerance-based**: amounts match only if within a small flat
   Rs. 1 (rounding noise). Anything larger is flagged as a real mismatch - so a

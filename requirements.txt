@@ -3,4 +3,8 @@ groq>=0.11.0          # Groq LLM client (OpenAI-compatible) for invoice field ex
 pandas>=2.0.0         # Read PO master + build the Excel tracker (Finance already lives in Excel)
 openpyxl>=3.1.0       # Excel .xlsx engine used by pandas
 tabulate>=0.9.0       # Clean console summary table
-python-dotenv>=1.0.0  # Optional: load GROQ_API_KEY from a local .env file for convenience
+pypdf>=4.0.0          # Extract text from the PDF invoice attachments pulled from Gmail
+fpdf2>=2.7.0          # Render the mock invoices into sample PDFs to email for testing
+python-dotenv>=1.0.0  # Optional: load GROQ_API_KEY / Gmail creds from a local .env file
+# Gmail is read over IMAP using Python's standard library (imaplib/email) — no extra
+# dependency, and no Google Cloud / OAuth setup needed (just an App Password).

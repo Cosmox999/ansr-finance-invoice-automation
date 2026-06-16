@@ -30,6 +30,9 @@ different layouts, labels, abbreviations and date formats.
 
 Extract these fields and return ONLY a JSON object (no prose, no markdown) with
 exactly these keys:
+  - "is_invoice":      true if this document is actually a vendor invoice / bill;
+                       false if it is something else (statement, receipt, letter,
+                       brochure, ticket, etc.) (boolean)
   - "vendor":          the vendor / supplier company name (string)
   - "invoice_number":  the invoice number / reference (string)
   - "invoice_date":    the invoice date, normalised to YYYY-MM-DD (string)
@@ -40,6 +43,7 @@ exactly these keys:
                        correct for this invoice (number)
 
 Rules:
+- If "is_invoice" is false, the other fields may be null.
 - "amount" is the grand total / total payable (incl. taxes if shown), not a line item.
 - Indian-format numbers like 1,03,250.00 must become 103250.00.
 - If a field is genuinely absent, use null and lower your confidence.
@@ -79,10 +83,25 @@ def _extract_one(client: Groq, filename: str, raw_text: str) -> dict:
     return data
 
 
-def extract_invoices() -> list[dict]:
-    """Extract structured fields for every invoice in data/invoices/.
+def load_local_sources() -> list[dict]:
+    """Read the bundled .txt invoices (the offline / no-inbox source).
 
-    Returns a list of dicts, one per invoice, each including 'source_file'.
+    Returns one record per file as {"source_file": name, "raw_text": text} - the
+    same shape the Gmail ingester produces, so the extractor doesn't care where
+    the text came from.
+    """
+    sources = []
+    for path in sorted(config.INVOICE_DIR.glob("*.txt")):
+        sources.append({"source_file": path.name, "raw_text": path.read_text(encoding="utf-8")})
+    return sources
+
+
+def extract_invoices(sources: list[dict]) -> list[dict]:
+    """Extract structured fields for each invoice source.
+
+    `sources` is a list of {"source_file": ..., "raw_text": ...} dicts (from Gmail
+    PDFs or local .txt files). Returns a list of dicts, one per invoice, each
+    including 'source_file'.
     """
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
@@ -93,17 +112,15 @@ def extract_invoices() -> list[dict]:
 
     client = Groq(api_key=api_key)
 
-    files = sorted(config.INVOICE_DIR.glob("*.txt"))
     results = []
-    for path in files:
-        raw_text = path.read_text(encoding="utf-8")
-        print(f"  - Extracting {path.name} ...")
-        record = _extract_one(client, path.name, raw_text)
+    for src in sources:
+        print(f"  - Extracting {src['source_file']} ...")
+        record = _extract_one(client, src["source_file"], src["raw_text"])
         results.append(record)
     return results
 
 
 if __name__ == "__main__":
-    # Allow running this module standalone for quick inspection.
-    for rec in extract_invoices():
+    # Allow running this module standalone for quick inspection (local source).
+    for rec in extract_invoices(load_local_sources()):
         print(json.dumps(rec, ensure_ascii=False))

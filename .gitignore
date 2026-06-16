@@ -4,13 +4,17 @@
 # Local Claude Code tooling config (machine-specific, may contain command history)
 .claude/
 
-# Source documents (job description / assignment brief) — not part of the deliverable
-*.docx
-*.pdf
+# Source documents (job description / assignment brief) in the project root —
+# not part of the deliverable. Root-level only (leading /) so the generated sample
+# invoice PDFs under data/sample_pdfs/ are still committed for testing.
+/*.docx
+/*.pdf
 
 # Generated outputs (regenerated on each run)
 output/
 data/invoice_tracker.xlsx
+# PDFs downloaded from Gmail at runtime (may contain whatever is in the inbox)
+data/invoices_pdf/
 
 # Python
 __pycache__/

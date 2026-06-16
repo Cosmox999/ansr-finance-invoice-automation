@@ -7,10 +7,10 @@ An automated check flagged the following invoice for your attention:
 
   Vendor          : DELTA LOGISTICS (INDIA)
   Invoice Number  : DLI-2026-3390
-  Invoice Date    : 2026-09-06
+  Invoice Date    : 2026-06-09
   PO Number       : PO-9999
   Invoice Amount  : Rs. 31,000.00
-  Source File     : invoice_delta_logistics.txt
+  Source File     : invoice_delta_logistics.pdf
 
 Issue
 -----

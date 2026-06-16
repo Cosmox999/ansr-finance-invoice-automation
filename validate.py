@@ -51,6 +51,7 @@ def validate_invoices(invoices: list[dict]) -> list[dict]:
       - "Discrepancy: Amount Mismatch"
       - "Discrepancy: Vendor Mismatch"   (PO + amount fine, but wrong vendor)
       - "Review: Low Confidence"         (matched, but extraction confidence is low)
+      - "Skipped: Not an Invoice"        (the PDF wasn't a vendor invoice at all)
     """
     po_df = pd.read_excel(config.PO_MASTER_PATH)
     # Index the PO master by PO Number for O(1) lookups.
@@ -59,6 +60,16 @@ def validate_invoices(invoices: list[dict]) -> list[dict]:
     enriched = []
     for inv in invoices:
         rec = dict(inv)  # copy so we don't mutate the extractor's output
+
+        # Guard: real inboxes contain non-invoice PDFs (statements, receipts, etc.).
+        # The LLM flags those; we skip them instead of raising a false discrepancy.
+        if not inv.get("is_invoice", True):
+            rec["po_amount"] = None
+            rec["po_vendor"] = None
+            rec["status"] = "Skipped: Not an Invoice"
+            enriched.append(rec)
+            continue
+
         po_number = str(inv.get("po_number") or "").strip()
         po_row = po_by_number.get(po_number)
 
@@ -96,7 +107,7 @@ def validate_invoices(invoices: list[dict]) -> list[dict]:
 
 if __name__ == "__main__":
     import json
-    from extract import extract_invoices
+    from extract import extract_invoices, load_local_sources
 
-    for record in validate_invoices(extract_invoices()):
+    for record in validate_invoices(extract_invoices(load_local_sources())):
         print(json.dumps(record, ensure_ascii=False))

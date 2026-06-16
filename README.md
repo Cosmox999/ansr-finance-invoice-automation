@@ -1,9 +1,9 @@
 # Invoice Processing & Validation — Prototype
 
-Automates the Finance team's manual invoice workflow: **read vendor invoices →
-validate against the PO master → update the Excel tracker → flag discrepancies for
-review.** An LLM (via Groq) handles the messy "every vendor formats invoices
-differently" part; plain Python handles the exact, auditable matching.
+Automates the Finance team's manual invoice workflow: **pull invoice PDFs from
+Gmail → validate against the PO master → update the Excel tracker → flag
+discrepancies for review.** An LLM (via Groq) handles the messy "every vendor
+formats invoices differently" part; plain Python handles the exact, auditable matching.
 
 > Built for the ANSR Global — AI Builder Intern assignment. Happy-path prototype:
 > simple, practical, and runnable with one command. See
@@ -14,9 +14,10 @@ differently" part; plain Python handles the exact, auditable matching.
 ## What it does (at a glance)
 
 ```
-data/invoices/*.txt  ──►  extract.py (Groq LLM)  ──►  validate.py (PO master)
-                     ──►  update_tracker.py (Excel)  ──►  flag_discrepancies.py (draft emails)
-                     ──►  main.py prints a summary table + writes an audit log
+Gmail inbox (PDF attachments)  ──►  gmail_ingest.py (IMAP + pypdf)  ──►  extract.py (Groq LLM)
+                               ──►  validate.py (PO master)  ──►  update_tracker.py (Excel)
+                               ──►  flag_discrepancies.py (draft emails)
+                               ──►  main.py prints a summary table + writes an audit log
 ```
 
 ## Setup
@@ -50,26 +51,58 @@ export GROQ_API_KEY="gsk_your_key_here"
 > Alternatively, create a `.env` file with `GROQ_API_KEY=gsk_your_key_here` — it is
 > loaded automatically.
 
+**5. Connect your Gmail (to read invoice PDFs)**
+
+The pipeline reads invoice **PDF attachments straight from a Gmail inbox** over IMAP.
+Gmail no longer allows your normal password for this, so you create a one-time
+**App Password** (requires 2-Step Verification on the account):
+
+1. Turn on **2-Step Verification**: https://myaccount.google.com/security
+2. Create an App Password: https://myaccount.google.com/apppasswords
+   → pick "Mail" / "Other", name it e.g. *Invoice Bot*, and copy the 16-character code.
+3. Add both to your `.env` file:
+
+```
+GROQ_API_KEY=gsk_your_key_here
+GMAIL_ADDRESS=you@gmail.com
+GMAIL_APP_PASSWORD=your16charapppassword
+```
+
+> `.env` is gitignored — these secrets never get committed.
+
 ## Run
 
 ```bash
-# (first time only) generate the mock invoices + PO master
+# (first time only) generate the PO master + the sample invoice PDFs
 python generate_mock_data.py
+python generate_sample_pdfs.py     # writes PDFs to data/sample_pdfs/
 
-# run the full pipeline
+# email those PDFs to your Gmail address (as attachments), leave them unread, then:
 python main.py
 ```
 
-That's it — one command runs extract → validate → track → flag → summary.
+`python main.py` pulls the PDF invoices from your inbox → extracts fields with the
+LLM → validates against the PO master → updates the Excel tracker → drafts
+discrepancy emails → prints the summary.
+
+> It scans **unread** emails and lets the LLM decide what's actually an invoice
+> (non-invoice PDFs are skipped), so a real invoice is caught regardless of its
+> subject line.
+
+> **No inbox / offline demo:** set `INVOICE_SOURCE=local` to read the bundled `.txt`
+> invoices in `data/invoices/` instead of Gmail — handy for a quick test without
+> email setup. PowerShell: `$env:INVOICE_SOURCE="local"; python main.py`
 
 ## Folder structure
 
 ```
 Finance assignment/
-├── config.py                  # All paths, model name, tolerances in one place
-├── generate_mock_data.py      # Creates the sample invoices + PO master
+├── config.py                  # All paths, model, tolerances, Gmail/source settings
+├── generate_mock_data.py      # Creates the sample .txt invoices + PO master
+├── generate_sample_pdfs.py    # Renders the mock invoices into PDFs to email
+├── gmail_ingest.py            # Pull PDF attachments from Gmail (IMAP) + read PDF text
 ├── extract.py                 # LLM extraction (Groq) → structured fields + confidence
-├── validate.py                # PO lookup + amount tolerance check
+├── validate.py                # PO lookup + amount tolerance + vendor cross-check
 ├── update_tracker.py          # Append results to the Excel tracker
 ├── flag_discrepancies.py      # Draft (don't send) alert emails for mismatches
 ├── main.py                    # Orchestrator: runs the whole pipeline
@@ -77,7 +110,9 @@ Finance assignment/
 ├── SOLUTION_DESIGN.md         # 1-2 page solution design (for Finance stakeholders)
 ├── README.md
 ├── data/
-│   ├── invoices/              # 6 mock invoices, each a different vendor layout
+│   ├── invoices/              # 7 mock invoices as .txt (offline-demo source)
+│   ├── sample_pdfs/           # ← generated PDFs you email to your Gmail
+│   ├── invoices_pdf/          # ← PDFs downloaded from Gmail at runtime
 │   ├── po_master.xlsx         # Purchase Order master (source of truth)
 │   └── invoice_tracker.xlsx   # ← created/updated by the pipeline
 └── output/

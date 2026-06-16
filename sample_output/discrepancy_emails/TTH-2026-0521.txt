@@ -10,7 +10,7 @@ An automated check flagged the following invoice for your attention:
   Invoice Date    : 2026-06-10
   PO Number       : PO-1007
   Invoice Amount  : Rs. 55,000.00
-  Source File     : invoice_titan_tools.txt
+  Source File     : invoice_titan_tools.pdf
 
 Issue
 -----

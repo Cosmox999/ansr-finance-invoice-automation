@@ -117,10 +117,10 @@ def flag_discrepancies(records: list[dict]) -> list[str]:
 
 
 if __name__ == "__main__":
-    from extract import extract_invoices
+    from extract import extract_invoices, load_local_sources
     from validate import validate_invoices
 
-    paths = flag_discrepancies(validate_invoices(extract_invoices()))
+    paths = flag_discrepancies(validate_invoices(extract_invoices(load_local_sources())))
     print(f"Wrote {len(paths)} discrepancy draft(s).")
     for p in paths:
         print("  -", p)

@@ -1,7 +1,10 @@
 # Sample output (a captured real run)
 
-These files are the actual result of running `python main.py` on the mock data, so
-a reviewer can see the system's output **without needing a Groq API key**.
+These files are the actual result of running `python main.py` — pulling the 7
+invoice PDFs from a Gmail inbox, extracting their fields, validating and tracking
+them — so a reviewer can see the system's output **without needing a Groq API key
+or a Gmail account of their own**. (See `console_output.txt`: Step 1 shows the PDFs
+being downloaded from the inbox.)
 
 | File | What it is |
 |------|------------|

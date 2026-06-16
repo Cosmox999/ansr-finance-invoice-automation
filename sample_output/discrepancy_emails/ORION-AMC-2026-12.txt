@@ -10,7 +10,7 @@ An automated check flagged the following invoice for your attention:
   Invoice Date    : 2026-06-05
   PO Number       : PO-1004
   Invoice Amount  : Rs. 158,000.00
-  Source File     : invoice_orion_software.txt
+  Source File     : invoice_orion_software.pdf
 
 Issue
 -----
