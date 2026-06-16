@@ -21,9 +21,8 @@ except ImportError:
 # --- Paths ---------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
-INVOICE_DIR = DATA_DIR / "invoices"            # local .txt invoices (offline demo)
 PDF_INBOX_DIR = DATA_DIR / "invoices_pdf"      # PDFs downloaded from Gmail land here
-SAMPLE_PDF_DIR = DATA_DIR / "sample_pdfs"      # generated PDFs you email to yourself
+SAMPLE_PDF_DIR = DATA_DIR / "sample_pdfs"      # generated PDF invoices (also the offline source)
 PO_MASTER_PATH = DATA_DIR / "po_master.xlsx"
 TRACKER_PATH = DATA_DIR / "invoice_tracker.xlsx"
 
@@ -32,8 +31,9 @@ EMAIL_DIR = OUTPUT_DIR / "discrepancy_emails"
 RUN_LOG_PATH = OUTPUT_DIR / "run_log.jsonl"   # Audit trail: one JSON line per invoice per run
 
 # --- Invoice source ------------------------------------------------------
+# Invoices are always PDFs. The source decides where those PDFs come from:
 # "gmail" = read PDF attachments from a Gmail inbox (the real workflow).
-# "local" = read the bundled .txt files in data/invoices/ (offline demo / no inbox).
+# "local" = read PDF files already saved in data/sample_pdfs/ (offline demo / no inbox).
 # Override without editing code via the INVOICE_SOURCE env var.
 INVOICE_SOURCE = os.environ.get("INVOICE_SOURCE", "gmail")
 

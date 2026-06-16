@@ -51,8 +51,7 @@ def main():
     """Render every mock invoice text into a PDF in data/sample_pdfs/."""
     config.SAMPLE_PDF_DIR.mkdir(parents=True, exist_ok=True)
     for filename, text in INVOICES:
-        pdf_name = filename.replace(".txt", ".pdf")
-        _text_to_pdf(text, config.SAMPLE_PDF_DIR / pdf_name)
+        _text_to_pdf(text, config.SAMPLE_PDF_DIR / filename)
     print(f"Wrote {len(INVOICES)} invoice PDFs to {config.SAMPLE_PDF_DIR}")
     print("Next: email these PDFs to your Gmail, then run  python main.py")
 

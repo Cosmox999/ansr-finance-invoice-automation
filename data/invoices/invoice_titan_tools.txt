@@ -1,9 +1,0 @@
-TITAN TOOLS & HARDWARE
-Invoice: TTH-2026-0521
-Date: 10-Jun-2026
-PO Reference: PO-1007
-Billed to: Northwind Manufacturing Ltd
-
-Industrial tool kits (x15) ......... Rs. 50,000.00
-Safety equipment ................... Rs.  5,000.00
-                          Total ..... Rs. 55,000.00

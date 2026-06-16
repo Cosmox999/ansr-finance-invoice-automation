@@ -87,15 +87,15 @@ def _print_summary(records: list[dict]) -> None:
 
 
 def _load_sources() -> list[dict]:
-    """Get invoice text from the configured source: Gmail PDFs or local .txt."""
+    """Get invoice text from the configured source: Gmail PDFs or local PDFs."""
     if config.INVOICE_SOURCE == "gmail":
         print("Step 1/5  Fetching invoice PDFs from Gmail ...")
         sources = ingest_from_gmail()
         print(f"          -> {len(sources)} PDF invoice(s) downloaded from the inbox")
     else:
-        print("Step 1/5  Loading local .txt invoices ...")
+        print("Step 1/5  Loading local PDF invoices from data/sample_pdfs/ ...")
         sources = load_local_sources()
-        print(f"          -> {len(sources)} invoice file(s) found")
+        print(f"          -> {len(sources)} PDF invoice(s) found")
     return sources
 
 

@@ -84,15 +84,18 @@ def _extract_one(client: Groq, filename: str, raw_text: str) -> dict:
 
 
 def load_local_sources() -> list[dict]:
-    """Read the bundled .txt invoices (the offline / no-inbox source).
+    """Read local PDF invoices from data/sample_pdfs/ (the offline / no-inbox source).
 
-    Returns one record per file as {"source_file": name, "raw_text": text} - the
-    same shape the Gmail ingester produces, so the extractor doesn't care where
-    the text came from.
+    Invoices are always PDFs; this just reads them from disk instead of Gmail. We
+    extract the text with the same pypdf helper used for the inbox PDFs, and return
+    one record per file as {"source_file": name, "raw_text": text} - the same shape
+    the Gmail ingester produces, so the extractor doesn't care where it came from.
     """
+    from gmail_ingest import read_pdf_text  # local import to avoid a hard dependency
+
     sources = []
-    for path in sorted(config.INVOICE_DIR.glob("*.txt")):
-        sources.append({"source_file": path.name, "raw_text": path.read_text(encoding="utf-8")})
+    for path in sorted(config.SAMPLE_PDF_DIR.glob("*.pdf")):
+        sources.append({"source_file": path.name, "raw_text": read_pdf_text(path)})
     return sources
 
 
@@ -100,7 +103,7 @@ def extract_invoices(sources: list[dict]) -> list[dict]:
     """Extract structured fields for each invoice source.
 
     `sources` is a list of {"source_file": ..., "raw_text": ...} dicts (from Gmail
-    PDFs or local .txt files). Returns a list of dicts, one per invoice, each
+    PDFs or local PDFs). Returns a list of dicts, one per invoice, each
     including 'source_file'.
     """
     api_key = os.environ.get("GROQ_API_KEY")

@@ -3,15 +3,15 @@ generate_mock_data.py - Create the sample dataset for the prototype.
 
 HOW THIS MAPS TO THE REAL SCENARIO
 ----------------------------------
-In production, Finance receives invoices as PDF attachments over email, in many
-different vendor layouts. A real pipeline would (1) pull the attachment from the
-inbox and (2) run PDF text extraction / OCR to get the raw text.
+Finance receives invoices as PDF attachments over email, in many different vendor
+layouts. This file defines that mock invoice content in the INVOICES list below,
+each entry written in a DELIBERATELY different style (formal table, casual email
+body, abbreviations, different date formats and field labels) so we can prove the
+LLM extractor copes with format variation the way a real vendor mix would demand.
 
-For this prototype we stand in for those two steps with plain-text files in
-data/invoices/ - one file = one "already-extracted" invoice. Each file is written
-in a DELIBERATELY different style (formal table, casual email body, abbreviations,
-different date formats and field labels) so we can prove the LLM extractor copes
-with format variation the way a real vendor mix would demand.
+The invoices are never saved as text files - generate_sample_pdfs.py renders this
+content into real PDF files (data/sample_pdfs/), which are emailed and then read
+back from the inbox as PDFs. This script writes only the PO master.
 
 The data/po_master.xlsx file is the Purchase Order master the Finance team checks
 invoices against. We seed it so that 4 invoices match cleanly and 3 are
@@ -33,7 +33,7 @@ import config
 INVOICES = [
 
     # (A) Classic formal invoice with a header block + table. CLEAN MATCH.
-    ("invoice_apex_steel.txt", """\
+    ("invoice_apex_steel.pdf", """\
 APEX STEEL & ALLOYS PVT LTD
 GST: 27AAACA1234F1Z5 | Mumbai, Maharashtra
 ------------------------------------------------------------
@@ -58,7 +58,7 @@ Payment due within 30 days. Thank you for your business.
 
     # (B) Casual EMAIL BODY style - no table, details inline in a sentence.
     #     Uses "PO#" abbreviation. CLEAN MATCH.
-    ("invoice_brightspark_email.txt", """\
+    ("invoice_brightspark_email.pdf", """\
 From: accounts@brightspark-electricals.com
 To: payables@northwind.com
 Subject: Invoice for May electrical works
@@ -77,7 +77,7 @@ BrightSpark Electricals
 """),
 
     # (C) Minimal / abbreviation-heavy slip. "Amt", "Dt", "PO No". CLEAN MATCH.
-    ("invoice_zenith_pack.txt", """\
+    ("invoice_zenith_pack.pdf", """\
 ZENITH PACKAGING
 Inv No: ZP-7741
 Dt: 2026/06/07
@@ -89,7 +89,7 @@ Corrugated boxes - bulk order. Net 15.
 
     # (D) Letter-style invoice, spelled-out wording. AMOUNT MISMATCH (seeded).
     #     Invoice says 1,58,000 but PO-1004 is for 1,45,000.
-    ("invoice_orion_software.txt", """\
+    ("invoice_orion_software.pdf", """\
 ORION SOFTWARE SOLUTIONS
 Annual Maintenance Contract - Billing Statement
 
@@ -107,7 +107,7 @@ Finance Desk, Orion Software Solutions
 
     # (E) Different date format (mm/dd/yyyy) + "P.O." with dots.
     #     PO DOES NOT EXIST in master (seeded). PO-9999.
-    ("invoice_delta_logistics.txt", """\
+    ("invoice_delta_logistics.pdf", """\
 DELTA LOGISTICS (INDIA)
 Freight & Transport Services
 
@@ -122,7 +122,7 @@ Fuel surcharge ............................. Rs.  2,500.00
 """),
 
     # (F) Compact tabular vendor with thousands separators. CLEAN MATCH.
-    ("invoice_summit_office.txt", """\
+    ("invoice_summit_office.pdf", """\
 SUMMIT OFFICE SUPPLIES  ::  Invoice
 =====================================
 Invoice #     SOS-2026-1190
@@ -140,7 +140,7 @@ TOTAL (INR) ................. 97,500.00
     #     valid, but PO-1007 belongs to "Vertex Industrial Supplies" - this invoice
     #     is from "Titan Tools & Hardware". Pure amount-matching would wave it
     #     through; the vendor cross-check catches it.
-    ("invoice_titan_tools.txt", """\
+    ("invoice_titan_tools.pdf", """\
 TITAN TOOLS & HARDWARE
 Invoice: TTH-2026-0521
 Date: 10-Jun-2026
@@ -182,22 +182,21 @@ PO_MASTER = [
 
 
 def main():
-    """Write the mock invoice text files and the PO master Excel file."""
-    # Create folders
-    config.INVOICE_DIR.mkdir(parents=True, exist_ok=True)
+    """Write the PO master Excel file.
+
+    Invoices are NOT written as files here - they are PDFs. The INVOICES list above
+    is the content that generate_sample_pdfs.py renders into real PDF files (in
+    data/sample_pdfs/), which are then emailed / read from the inbox. This script
+    only produces the PO master the invoices are validated against.
+    """
     config.DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Write invoice text files
-    for filename, text in INVOICES:
-        (config.INVOICE_DIR / filename).write_text(text, encoding="utf-8")
-    print(f"Wrote {len(INVOICES)} mock invoices to {config.INVOICE_DIR}")
-
-    # Write PO master
     df = pd.DataFrame(PO_MASTER)
     df.to_excel(config.PO_MASTER_PATH, index=False)
     print(f"Wrote PO master ({len(PO_MASTER)} POs) to {config.PO_MASTER_PATH}")
     print("Seeded discrepancies: PO-1004 (amount mismatch), PO-9999 (PO not "
           "found), PO-1007 (vendor mismatch).")
+    print("Next: run  python generate_sample_pdfs.py  to create the invoice PDFs.")
 
 
 if __name__ == "__main__":

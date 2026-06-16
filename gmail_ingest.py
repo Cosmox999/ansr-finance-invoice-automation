@@ -102,7 +102,7 @@ def ingest_from_gmail() -> list[dict]:
     """Fetch PDF attachments from Gmail and return one record per invoice as
     {"source_file": <pdf name>, "raw_text": <extracted text>}.
 
-    This is the same shape the extractor consumes for local .txt invoices, so the
+    This is the same shape the extractor consumes for local PDF invoices, so the
     rest of the pipeline is unchanged.
     """
     pdf_paths = fetch_invoice_pdfs()
