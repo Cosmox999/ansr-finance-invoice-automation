@@ -68,16 +68,20 @@ def fetch_invoice_pdfs() -> list:
     imap.login(address, app_password)
     try:
         imap.select(config.GMAIL_MAILBOX)
-        _status, message_sets = imap.search(None, config.GMAIL_SEARCH)
+        # Gmail-side search (X-GM-RAW) so the server returns only the few unread
+        # emails that actually carry a PDF attachment - fast even with a huge inbox.
+        _status, message_sets = imap.search(None, "X-GM-RAW", f'"{config.GMAIL_SEARCH}"')
         message_ids = message_sets[0].split()
 
         saved = []
         for msg_id in message_ids:
-            # BODY.PEEK[] downloads the message WITHOUT marking it as read.
+            # BODY.PEEK[] downloads the message WITHOUT marking it as read (we decide
+            # below whether to mark it read, once we've actually saved a PDF from it).
             _status, data = imap.fetch(msg_id, "(BODY.PEEK[])")
             raw = data[0][1]
             msg = email.message_from_bytes(raw)
 
+            got_pdf = False
             for part in msg.walk():
                 if part.get_content_maintype() == "multipart":
                     continue
@@ -93,6 +97,12 @@ def fetch_invoice_pdfs() -> list:
                 dest = config.PDF_INBOX_DIR / filename
                 dest.write_bytes(payload)
                 saved.append(dest)
+                got_pdf = True
+
+            # Mark this email read so the next run won't pick it up again. Only do it
+            # for emails we actually pulled a PDF from, and only if MARK_AS_READ.
+            if got_pdf and config.MARK_AS_READ:
+                imap.store(msg_id, "+FLAGS", "\\Seen")
         return saved
     finally:
         imap.logout()

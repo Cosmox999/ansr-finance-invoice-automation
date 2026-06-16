@@ -44,13 +44,18 @@ INVOICE_SOURCE = os.environ.get("INVOICE_SOURCE", "gmail")
 # never hardcoded.
 IMAP_HOST = "imap.gmail.com"
 GMAIL_MAILBOX = "INBOX"
-# Which messages to scan for PDF attachments. We scan all UNREAD emails and let the
-# LLM decide what's actually an invoice (the is_invoice guard skips the rest). This
-# is content-based, so a real invoice is caught regardless of its subject line - a
-# subject filter like '(UNSEEN SUBJECT "invoice")' would MISS invoices whose subject
-# doesn't say "invoice" (vendors often write "Payment due", "May statement", etc.).
-# We read with PEEK so messages are NOT marked read - you can re-run the demo freely.
-GMAIL_SEARCH = "UNSEEN"
+# Which messages to scan, written in Gmail's own search syntax and run server-side
+# via X-GM-RAW. Gmail does the filtering and returns ONLY unread emails that actually
+# carry a PDF attachment - so it stays fast even with thousands of unread emails, and
+# we never download mail we don't need. The is_invoice guard then skips any PDF that
+# isn't really an invoice.
+GMAIL_SEARCH = "is:unread has:attachment filename:pdf"
+
+# After an email is processed, mark it as read so it is NOT picked up again on the
+# next run - this is what stops already-processed invoices from being reprocessed
+# when new mail arrives. Set False to keep emails unread (handy for re-running the
+# exact same demo).
+MARK_AS_READ = True
 
 # --- LLM (Groq) ----------------------------------------------------------
 GROQ_MODEL = "llama-3.3-70b-versatile"

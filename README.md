@@ -85,9 +85,12 @@ python main.py
 LLM → validates against the PO master → updates the Excel tracker → drafts
 discrepancy emails → prints the summary.
 
-> It scans **unread** emails and lets the LLM decide what's actually an invoice
-> (non-invoice PDFs are skipped), so a real invoice is caught regardless of its
-> subject line.
+> It uses Gmail's own search (server-side) to fetch only **unread emails that have a
+> PDF attachment**, so it downloads just those — not every unread message in the
+> inbox — and lets the LLM decide what's actually an invoice (non-invoice PDFs are
+> skipped). Each processed email is then **marked read**, so re-runs only pick up new
+> invoices and nothing is processed twice. (Set `MARK_AS_READ = False` in `config.py`
+> to keep them unread for repeated demos.)
 
 > **No inbox / offline demo:** set `INVOICE_SOURCE=local` to read the PDF invoices
 > already in `data/sample_pdfs/` instead of Gmail — handy for a quick test without
